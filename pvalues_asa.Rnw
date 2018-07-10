@@ -1,0 +1,428 @@
+% To use knitr in RStudio:
+  % 1. setwd() to wherever files should be saved
+  % setwd("C:\\Users\\Peter\\OneDrive\\stats\\survival\\slides")
+  % 2. Tools - Global Options - Set Default working directory (when 
+    % not in a project)    to match your working directory for
+  % 3. Tools - global options - Sweave - Weave Rnv files using : knitr
+  % 4. File - new file - R Sweave
+% To use BIBTEX
+  % 1. Create a file 'references.bib' in the working directory
+  % 2. use pre-specified bibtex formats for references
+  % 3. change setwd() in the first chunk under first \section
+% NOTE: pdf.options(useDingbats=TRUE)  -> makes PDF take up less space bc uses non-vector images?
+\documentclass{beamer}
+\usetheme{cambridgeUS}
+\usepackage{array}
+\usepackage{bibentry}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{tikz-cd}
+
+
+
+\usecolortheme{seagull}
+\setbeamertemplate{itemize/enumerate body begin}{\scriptsize}
+\setbeamertemplate{itemize/enumerate subbody begin}{\scriptsize}
+
+
+
+\title{ASA Statement on P-Values}
+% \subtitle{}
+\author{P. Swanson}
+\date{April 1, 2016}
+
+
+
+\begin{document}
+% \SweaveOpts{concordance=TRUE}
+<<setup, include=FALSE>>=
+# smaller font size for chunks
+opts_chunk$set(size = 'scriptsize')
+@
+
+
+
+\frame{\titlepage}
+
+
+%%%% Section: Intro %%%%% 
+\section{Intro}
+
+\begin{frame}
+\frametitle{American Statistical Association Statement on P-Values}
+\begin{itemize}
+\item In March, the American Statistical Association (ASA) published a statement intended to clarify the meaning and use of p-values for non-statisticians \cite{american2016american, wasserstein2016asa}
+  \begin{itemize}
+    \item Definition + six principles to aid in understanding
+    \item 21 members of the committee were asked to write supplemental opinions which were published online www.asa.com
+  \end{itemize}
+\item The statement is the result of a yearlong discussion by a special panel set up by the ASA board
+\item 1st time in 177 year history ASA took an official position on a "matter of statistical practice"
+\item Excludes discussions of alternative hypothesis testing, error types, family-wise error rates, power, false discovery rates, multiple testing, etc.
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Motivation for ASA Statement
+\begin{frame}
+\frametitle{Motivation for ASA Statement}
+\begin{itemize}
+\item Reproducibility Crisis in science
+  \begin{itemize}
+  \item Bright lines (0.05)
+  \item P-hacking 
+  \item File Drawer problem (publish or perish)
+  \end{itemize}
+\item The journal \textit{Basic and Applied Social Psychology} banned p-values (NHST) \cite{Trafimow15}
+\item Supreme Court ruled that companies could not rely solely on statistical significance when deciding what to disclose to investors \cite{Bailik11}
+\item Much older concerns about the misuse and misunderstanding of p-values
+  \begin{itemize}
+  \item ``The p-value was never intended to be a substitute for scientific reasoning. Well-reasoned statistical arguments contain much more than the value of a single number and whether that number exceeds an arbitrary threshold. The ASA statement is intended to steer research into a `post $p<0.05$ era.'" - R. Wasserstein, ASA President \cite{american2016american}
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Definition
+
+\begin{frame}
+\frametitle{ASA Statement - Definition}
+{\bf ASA non-technical definition:}
+
+Informally, a p-value is the probability under a specified statistical model that a statistical summary of the data (for example, the sample mean difference between two compared groups) would be equal to or more extreme than its observed value. \cite{wasserstein2016asa}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Background - Probability Distributions
+
+\begin{frame}[fragile]
+\frametitle{Background - Probability Distributions}
+\begin{itemize}
+\item A random variable, $T$, follows a probability distribution, $F$
+\item If we know that distribution, we can say something about the probability of observing different values of $T$
+\item For example, let $T \sim N(0,1)$. Say we have some observation $t=2$ and we want to know the probability of observing a value of $T$ at least as large as ``2".  Since the total area under the PDF is equal to 1, $P(T \ge 2)=0.023$.
+\end{itemize}
+\begin{scriptsize}
+<<cdfpmf, fig.align='center', fig.width=4, fig.height=2.5, out.width='0.5\\linewidth', echo=FALSE, cache=TRUE>>=
+rm(list=ls())
+par(cex=.7)
+x <- seq(-4, 4, length=500)
+hx <- dnorm(x)
+lb = 2
+ub=5
+
+plot(x, hx, type="l", xlab="t", ylab="",
+     main="Normal Distribution", axes=FALSE)
+
+i <- x > lb
+lines(x, hx)
+polygon(c(lb,x[i],ub), c(0,hx[i],0), col="black") 
+
+area <- 1 - pnorm(2)
+result <- paste("P(", lb, "< t ) =",
+                signif(area, digits=2))
+mtext(result,3, cex=.7)
+axis(1, pos=0)
+@
+\end{scriptsize}
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% P-value example (part 1)
+\begin{frame}
+\frametitle{P-value Example}
+\begin{scriptsize}
+\begin{itemize}
+\item Q: What is a $P$-value?
+\item A: $P(T\ge t_0 | H_0)$ \cite{Rice13}
+\end{itemize}
+
+\begin{itemize}
+  \item Consider a regression example where we have specified the model $Y=\beta_0 + \beta_1X + \beta_2Z + \epsilon$
+  \item Say we want to focus on variable $X$.
+  \item IF
+    \begin{enumerate}
+      \item The null hypothesis $(\beta_1=0)$ is true
+      \item All model assumptions are met
+    \end{enumerate}
+  \item THEN
+    \begin{itemize}
+      \item We define a test statistic, $t_0 = \frac{\hat{\beta}_1}{\hat{SE}\left(\hat{\beta}_1 \right)}$, which in this example we know follows a $T$ distribution $t_0 \sim T_{n-p-1} $
+    \end{itemize}
+\end{itemize}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% P-value (Simulated) Example
+\begin{frame}
+\frametitle{P-value (Simulated) Example}
+\begin{scriptsize}
+
+Say we have estimated the model, $Y=\beta_0 + \beta_1X + \beta_2Z$ on $n=100$ observations.
+
+% latex table generated in R 3.4.4 by xtable 1.8-2 package
+% Wed Jul 04 11:49:31 2018
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & -0.08 & 0.10 & -0.81 & 0.42 \\ 
+  x & 0.22 & 0.09 & \textcolor{red}{2.36} & \textcolor{red}{0.02} \\ 
+  z & 0.33 & 0.09 & 3.72 & 0.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+\item Our test statistic $t_0=2.36$.
+\item If our null hypothesis is true, $H_0:\beta_1 = 0$, and the model is correctly specified, the probability of observing a test statistic at least as high as 2.36 is given by our $p$-value, $p=0.02$.
+\item The $p$-value is equal to the area under the $t_97$ distribution to the right of the observed test statistic $t_0=2.36$. 
+\end{itemize}
+
+<<fig2, fig.align='center', fig.width=4, fig.height=2.5, out.width='0.4\\linewidth', echo=FALSE, cache=TRUE>>=
+par(cex=.7)
+x <- seq(-4, 4, length=500)
+hx <- dt(x, df=97)
+lb = 2.36
+ub=5
+
+plot(x, hx, type="l", xlab="t", ylab="",
+     main="T(97) Distribution", axes=FALSE)
+
+i <- x > lb
+lines(x, hx)
+polygon(c(lb,x[i],ub), c(0,hx[i],0), col="red")
+
+area <- 1 - pnorm(2)
+result <- paste("P(", lb, "< t ) =",
+                signif(area, digits=2))
+mtext(result,3)
+axis(1, pos=0)
+@
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Common Misinterpretations
+
+\begin{frame}
+\frametitle{Common Misinterpretations}
+
+\begin{itemize}
+\item P-values can't say whether a hypothesis is true: $P(T \ge t_0|H_0) \ne P(H_0|T\ge t_0)$
+  \begin{itemize}
+  \item "A p-value of 0.05 does not mean that there is a 95\% chance that a given hypothesis is correct. Instead, it signifies that if the null hypothesis is true, and all other assumptions made are valid, there is a 5\% chance of obtaining a result at least as extreme as the one observed." \cite{baker2016statisticians}
+  \item "Most scientists would look at his original P value of 0.01 and say that there was just a 1\% chance of his result being a false alarm. But they would be wrong. The P value cannot say this: all it can do is summarize the data assuming a specific null hypothesis. It cannot work backwards and make statements about the underlying reality. That requires another piece of information: the odds that a real effect was there in the first place." \cite{nuzzo2014scientific}
+  \item "If you use p = 0.05 to suggest that you have made a discovery, you will be wrong at least 30\% of the time. If, as is often the case, experiments are under powered, you will be wrong most of the time." \cite{colquhoun2014}
+  \end{itemize}
+\item Nearly everything is significant in nature, it is just a matter of precision
+  \begin{itemize}
+  \item The difference between 0.0 vs 0.0000000000001 is statistically significant
+  \item Problem becomes evident with larger datasets ($\uparrow n \propto \uparrow$ precision)
+  \item The math is correct, but p-values answer a question no one cares about
+  \item "[p-values are] at best uninformative and at worst seriously misleading"   \cite{matloff2009algorithms}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Misuse
+
+\begin{frame}
+\frametitle{Misuse}
+\begin{itemize}
+\item $P$-hacking \& Multiple Testing
+  \begin{itemize}
+  \item See \cite{Aschwanden15} for a tutorial on $P$-hacking!
+  \end{itemize}
+\item Bright Lines (i.e. 0.05) used without context
+  \begin{itemize}
+  \item There is no meaningful scientific basis for using 0.05 as a threshold. Fisher just said it was "convenient", then in the same book finds an effect with a $p<0.05$ and dismisses it based on additional analysis and knowledge of the problem at hand.\cite{fisher1932statistical}
+  \item ``The irony is that when UK statistician Ronald Fisher introduced the P value in the 1920s, he did not mean it to be a definitive test. He intended it simply as an informal way to judge whether evidence was significant in the old-fashioned sense: worthy of a second look."\cite{nuzzo2014scientific}
+  \end{itemize}
+\item $P$-values are not effect sizes
+  \begin{itemize}
+  \item ``...a $p$-value cannot indicate the importance of a finding..." \cite{baker2016statisticians}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Why all the confusion
+\begin{frame}
+\frametitle{Why All the Confusion?}
+\begin{itemize}
+\item $P$-values are hard to explain
+  \begin{itemize}
+  \item ``Try to distill the p-value down to an intuitive concept and it loses all its nuances and complexity, said science journalist Regina Nuzzo, a statistics professor at Gallaudet University. ``Then people get it wrong, and this is why statisticians are upset and scientists are confused." You can get it right, or you can make it intuitive, but it's all but impossible to do both." \cite{aschwanden2015not}
+  \end{itemize}
+\item $P$-values are misrepresented in applied stats books, Centers for Public Health, CDC website, ... (see \cite{Aschwanden16} for examples)
+\item Circularity \`a la George Cobb
+  \begin{itemize}
+  \item Q: Why do so many colleges and grad schools teach $p=.05$?
+  \item A: Because that's still what the scientific community and journal editors use.
+  \item Q: Why do so many people still use $p=.05$?
+  \item A: Because that's what they were taught in college or grad school.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Definition+
+\begin{frame}
+\frametitle{ASA Statement - Definition + Example}
+\begin{scriptsize}
+{\bf ASA non-technical definition:}
+
+Informally, a p-value is the probability under a \textcolor{blue}{specified statistical model} that a \textcolor{violet}{statistical summary of the data} (for example, the sample mean difference between two compared groups) would be \textcolor{red}{equal to or more extreme than its observed value}. \cite{wasserstein2016asa} \\~\\
+
+\begin{columns}[T]
+  \begin{column}{.48\textwidth}
+  Specified Model:
+  \textcolor{blue}{$$Y = \beta_0 + \beta_1X + \beta_2Z + \epsilon$$}
+  Under our null hypothesis, $\beta_1=0$, we define a test statistic which follows a $t_{n-k-1}$ distribution.
+  \textcolor{violet}{$$\frac{\hat{\beta}_1}{\hat{SE}(\hat{\beta}_1)} \sim T_{n-k-1}$$}
+  
+  \end{column}
+  
+  \begin{column}{.48\textwidth}
+    \begin{table}[ht]
+    \centering
+    \resizebox{\columnwidth}{!}{%
+      \begin{tabular}{rrrrr}
+      \hline
+      & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+      \hline
+      (Intercept) & -0.08 & 0.10 & -0.81 & 0.42 \\ 
+      x & 0.22 & 0.09 & \textcolor{red}{2.36} & 0.02 \\ 
+      z & 0.33 & 0.09 & 3.72 & 0.00 \\ 
+      \hline
+      \end{tabular}%
+    }
+    \end{table}
+  \end{column}
+\end{columns}
+
+\end{scriptsize}
+
+$$ P(\textcolor{violet}{T} \textcolor{red}{\ge t_0}|\textcolor{blue}{H_0}) $$
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 1
+\begin{frame}
+\frametitle{ASA Statement - Principle 1}
+Principle 1: $P$-values can indicate how incompatible the data are with a specified statistical model.
+\begin{itemize}
+\item A p-value provides one approach to summarizing the incompatibility between a particular set of data and a proposed model for the data. The most common context is a model, constructed under a set of assumptions, together with a so-called ``null hypothesis." Often the null hypothesis postulates the absence of an effect, such as no difference between two groups, or the absence of a relationship between a factor and an outcome. {\bf The smaller the p-value, the greater the statistical incompatibility of the data with the null hypothesis, if the underlying assumptions used to calculate the p-value hold.} This incompatibility can be interpreted as casting doubt on or providing evidence against the null hypothesis or the underlying assumptions.
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 2
+\begin{frame}
+\frametitle{ASA Statement - Principle 2}
+Principle 2: $P$-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone. 
+\begin{itemize}
+\item Researchers often wish to turn a p-value into a statement about the truth of a null hypothesis, or about the probability that random chance produced the observed data. The p-value is neither. {\bf It is a statement about data in relation to a specified hypothetical explanation, and is not a statement about the explanation itself.}
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 3
+\begin{frame}
+\frametitle{ASA Statement - Principle 3}
+Principle 3: Scientific conclusions and business or policy decisions should not be based only on whether a p-value passes a specific threshold. 
+\begin{itemize}
+\item Practices that reduce data analysis or scientific inference to mechanical ``bright-line" rules (such as ``$p < 0.05$") for justifying scientific claims or conclusions can lead to erroneous beliefs and poor decision-making. {\bf A conclusion does not immediately become ``true" on one side of the divide and ``false" on the other.} Researchers should bring many contextual factors into play to derive scientific inferences, including the design of a study, the quality of the measurements, the external evidence for the phenomenon under study, and the validity of assumptions that underlie the data analysis. Pragmatic considerations often require binary, ``yes-no" decisions, but this does not mean that p-values alone can ensure that a decision is correct or incorrect. {\bf The widespread use of ``statistical significance" (generally interpreted as ``$p \le 0.05$") as a license for making a claim of a scientific finding (or implied truth) leads to considerable distortion of the scientific process.}
+\end{itemize}
+\end{frame}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 4
+\begin{frame}
+\frametitle{ASA Statement - Principle 4}
+Principle 4: Proper inference requires full reporting and transparency
+
+\begin{itemize}
+\item $P$-values and related analyses should not be reported selectively. {\bf Conducting multiple analyses of the data and reporting only those with certain p-values (typically those passing a significance threshold) renders the reported p-values essentially uninterpretable}. Cherry-picking promising findings, also known by such terms as data dredging, significance chasing, significance questing, selective inference and ``p-hacking," leads to a spurious excess of statistically significant results in the published literature and should be vigorously avoided. One need not formally carry out multiple statistical tests for this problem to arise: Whenever a researcher chooses what to present based on statistical results, valid interpretation of those results is severely compromised if the reader is not informed of the choice and its basis. Researchers should disclose the number of hypotheses explored during the study, all data collection decisions, all statistical analyses conducted and all p-values computed. Valid scientific conclusions based on p-values and related statistics cannot be drawn without at least knowing how many and which analyses were conducted, and how those analyses (including p-values) were selected for reporting.
+\end{itemize}
+\end{frame}
+
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 5
+\begin{frame}
+\frametitle{ASA Statement - Principle 5}
+Principle 5: A $p$-value, or statistical significance, does not measure the size of an effect or the importance of a result.
+\begin{itemize}
+\item Statistical significance is not equivalent to scientific, human, or economic significance. Smaller p-values do not necessarily imply the presence of larger or more important effects, and larger $p$-values do not imply a lack of importance or even lack of effect. {\bf Any effect, no matter how tiny, can produce a small $p$-value if the sample size or measurement precision is high enough, and large effects may produce unimpressive $p$-values if the sample size is small or measurements are imprecise}. Similarly, identical estimated effects will have different $p$-values if the precision of the estimates differs.
+\end{itemize}
+\end{frame}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%% ASA Statement - Principle 6
+\begin{frame}
+\frametitle{ASA Statement - Principle 6}
+Principle 6: By itself, a p-value does not provide a good measure of evidence regarding a model or hypothesis.
+\begin{itemize}
+\item Researchers should recognize that a $p$-value without context or other evidence provides limited information. For example, {\bf a $p$-value near 0.05 taken by itself offers only weak evidence against the null hypothesis}. Likewise, a relatively large $p$-value does not imply evidence in favor of the null hypothesis; many other hypotheses may be equally or more consistent with the observed data. For these reasons, data analysis should not end with the calculation of a $p$-value when other approaches are appropriate and feasible.
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Implications for Predictive Modelers
+\begin{frame}
+\frametitle{Implications for Predictive Modelers}
+\begin{itemize}
+\item Confirmation
+  \begin{itemize}
+  \item Predictive modelers have always put a heightened emphasis on predictive power rather than blindly following $p$-values. Out-of-sample testing, backtesting, and sensitivity analysis provide more rigorous model validation.
+  \item Subject Matter Experts are brought in early and consulted often as a way to identify and confirm model inputs.
+  \end{itemize}
+\item The ASA did not recommend abandoning $p$-values
+  \begin{itemize}
+  \item ``In some sense it offers a first line of defense against being fooled by randomness, separating signal from noise, because the models it requires are simpler than any other statistical tool needs."\cite{colquhoun2014}
+  \end{itemize}
+\item Alternatives \& Additional Analyses
+  \begin{itemize}
+  \item Business knowledge / practical considerations
+  \item Effect sizes \& sensitivity analysis
+  \item Backtesting
+  \item Confidence/credibility/prediction intervals
+  \item MC integration to better understand complex processes
+  \item Bayesian methods, $P(H|X)$
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% Conclusion
+% 
+\begin{frame}
+\frametitle{Conclusion}
+\begin{itemize}
+\item $p$-values are often misused and misunderstood
+\item $p$-values are still useful, but should not be used alone
+\item It is important that we understand their limitations and explain them rather than resorting to oversimplifying statements like ``a $p$-value is the probability that the null hypothesis is correct". This can lead to a false sense of certainty about our models
+\item ASA Statement confirms predictive modeling's focus on alternatives to $p$-values
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliography %%%%%%%%%%%%%%%%
+\begingroup
+\tiny%
+\begin{frame}{Bibliography}
+\bibliographystyle{abbrv}
+\bibliography{references}
+\end{frame}
+\endgroup
+
+
+
+
+\end{document}
